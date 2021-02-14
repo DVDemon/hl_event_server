@@ -38,7 +38,7 @@ using Poco::Util::OptionSet;
 using Poco::Util::ServerApplication;
 
 #include "http_request_factory.h"
-#include "config.h"
+#include "../config/config.h"
 
 
 class HTTPWebServer : public Poco::Util::ServerApplication

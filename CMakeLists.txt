@@ -20,7 +20,10 @@ include_directories("/usr/include/mysql")
 include_directories("/usr/local/include/mysql")
 link_directories("/usr/local/lib")
 
-add_executable(${EXAMPLE_BINARY} main.cpp web_server/config.cpp)
+add_executable(${EXAMPLE_BINARY} main.cpp 
+                                 config/config.cpp 
+                                 database/database.cpp
+                                 database/author.cpp)
 
 target_include_directories(${EXAMPLE_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")
 target_compile_options(${EXAMPLE_BINARY} PRIVATE -Wall -Wextra -pedantic -Werror )
