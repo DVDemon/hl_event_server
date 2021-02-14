@@ -30,7 +30,7 @@ namespace database
             std::string &title();
 
             static void init();
-            static Author read_by_id();
+            static Author read_by_id(long id);
             static std::vector<Author> read_all();
             static std::vector<Author> search(std::string first_name,std::string last_name);
             void insert();
