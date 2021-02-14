@@ -1,6 +1,7 @@
-#include <iostream>
+#include "web_server/http_web_server.h"
 
-auto main() -> int
+int main(int argc, char*argv[]) 
 {
-    return 1;
+    HTTPWebServer app;
+    return app.run(argc, argv);
 }
