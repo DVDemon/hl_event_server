@@ -140,7 +140,7 @@ void Author::insert(){
         Poco::Data::Session session = database::Database::get().create_session_write();
         Statement insert(session);
         
-        insert << "INSERT INTO Author VALUES(?, ?, ?)",
+        insert << "INSERT INTO Author (first_name,last_name,email,title) VALUES(?, ?, ?, ?)",
             use(_first_name),
             use(_last_name),
             use(_email),
