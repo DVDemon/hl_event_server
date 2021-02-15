@@ -12,10 +12,12 @@ namespace database{
 
 void Author::init(){
 try{ 
+ 
         Poco::Data::Session session = database::Database::get().create_session_write();
+        /*
         Statement drop_stmt(session);
-        drop_stmt << "DROP TABLE IF EXISTS Author", now;
-
+        drop_stmt << "DROP TABLE IF EXISTS Author", now;*/
+ 
         // (re)create table
         Statement create_stmt(session);
         create_stmt << "CREATE TABLE IF NOT EXISTS `Author` (`id` INT NOT NULL AUTO_INCREMENT, `first_name` VARCHAR(256) NOT NULL,`last_name` VARCHAR(256) NOT NULL,`email` VARCHAR(256) NULL, `title` VARCHAR(1024) NULL,  PRIMARY KEY (`id`),KEY `fn` (`first_name`),KEY `ln` (`last_name`));" , now;

@@ -39,6 +39,7 @@ using Poco::Util::ServerApplication;
 
 #include "http_request_factory.h"
 #include "../config/config.h"
+#include "../database/author.h"
 
 
 class HTTPWebServer : public Poco::Util::ServerApplication
@@ -117,38 +118,46 @@ protected:
     void handleInitDB([[maybe_unused]] const std::string &name,
                       [[maybe_unused]] const std::string &value)
     {
+        std::cout << "init db" << std::endl;
+        database::Author::init();
     }
     void handleLogin([[maybe_unused]] const std::string &name,
                      [[maybe_unused]] const std::string &value)
     {
+        std::cout << "login:" << value << std::endl;
         Config::get().login() = value;
     }
     void handlePassword([[maybe_unused]] const std::string &name,
                         [[maybe_unused]] const std::string &value)
     {
+        std::cout << "password:" << value << std::endl;
         Config::get().password() = value;
     }
 
      void handleDatabase([[maybe_unused]] const std::string &name,
                          [[maybe_unused]] const std::string &value)
     {
+        std::cout << "database:" << value << std::endl;
         Config::get().database() = value;
     }   
     void handlePort([[maybe_unused]] const std::string &name,
                     [[maybe_unused]] const std::string &value)
     {
+        std::cout << "port:" << value << std::endl;
         Config::get().port() = value;
     }
 
     void handleReadIP([[maybe_unused]] const std::string &name,
                       [[maybe_unused]] const std::string &value)
     {
+        std::cout << "read_ip:" << value << std::endl;
         Config::get().read_request_ip() = value;
     }
 
     void handleWriteIP([[maybe_unused]] const std::string &name,
                        [[maybe_unused]] const std::string &value)
     {
+        std::cout << "write_ip:" << value << std::endl;
         Config::get().write_request_ip() = value;
     }
 

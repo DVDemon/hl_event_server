@@ -21,6 +21,8 @@ namespace database{
         _connection_string_write+=Config::get().get_database();
         _connection_string_write+=";password=";
         _connection_string_write+=Config::get().get_password();
+
+        Poco::Data::MySQL::Connector::registerConnector();
     }
 
     Database& Database::get(){

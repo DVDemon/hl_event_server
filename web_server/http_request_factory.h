@@ -39,12 +39,13 @@ using Poco::Util::OptionCallback;
 using Poco::Util::HelpFormatter;
 
 #include "handlers/web_page_handler.h"
+#include "handlers/author_handler.h"
 
-/*
+
 static bool startsWith(const std::string& str, const std::string& prefix)
 {
     return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
-}*/
+}
 
 
 class HTTPRequestFactory: public HTTPRequestHandlerFactory
@@ -59,7 +60,9 @@ public:
         const HTTPServerRequest& request)
     {
         static std::string html=".html"; 
+        static std::string author="/author"; 
         if (request.getURI().find(html)!=std::string::npos)     return new WebPageHandler(_format);
+        if (startsWith(request.getURI(),author)) return new AuthorHandler(_format);
         return 0;
     }
 
