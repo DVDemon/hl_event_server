@@ -35,6 +35,8 @@ namespace database
             static std::vector<Author> search(std::string first_name,std::string last_name);
             void insert();
 
+            Poco::JSON::Object::Ptr toJSON() const;
+
     };
 }
 

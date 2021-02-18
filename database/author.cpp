@@ -14,13 +14,19 @@ void Author::init(){
 try{ 
  
         Poco::Data::Session session = database::Database::get().create_session_write();
-        /*
+        //*
         Statement drop_stmt(session);
-        drop_stmt << "DROP TABLE IF EXISTS Author", now;*/
+        drop_stmt << "DROP TABLE IF EXISTS Author", now;
+        //*/
  
         // (re)create table
         Statement create_stmt(session);
-        create_stmt << "CREATE TABLE IF NOT EXISTS `Author` (`id` INT NOT NULL AUTO_INCREMENT, `first_name` VARCHAR(256) NOT NULL,`last_name` VARCHAR(256) NOT NULL,`email` VARCHAR(256) NULL, `title` VARCHAR(1024) NULL,  PRIMARY KEY (`id`),KEY `fn` (`first_name`),KEY `ln` (`last_name`));" , now;
+        create_stmt << "CREATE TABLE IF NOT EXISTS `Author` (`id` INT NOT NULL AUTO_INCREMENT," <<
+                        "`first_name` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,"<<
+                        "`last_name` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,"<<
+                        "`email` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL," << 
+                        "`title` VARCHAR(1024) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,"<<
+                        "PRIMARY KEY (`id`),KEY `fn` (`first_name`),KEY `ln` (`last_name`));" , now;
     }
 
     catch (Poco::Data::MySQL::ConnectionException& e){
@@ -32,6 +38,18 @@ try{
         std::cout << "statement:" << e.what() << std::endl;
         throw ;
     }
+}
+
+Poco::JSON::Object::Ptr Author::toJSON() const{
+    Poco::JSON::Object::Ptr root = new Poco::JSON::Object();
+
+    root->set("id", _id);
+    root->set("first_name", _first_name);
+    root->set("last_name", _last_name);
+    root->set("email", _email);
+    root->set("title", _title);
+
+    return root;
 }
 
 Author Author::read_by_id(long id){
@@ -144,7 +162,8 @@ void Author::insert(){
             use(_first_name),
             use(_last_name),
             use(_email),
-            use(_title);
+            use(_title),
+            now;
 
         insert.execute();
     
@@ -155,7 +174,7 @@ void Author::insert(){
     }
     catch(Poco::Data::MySQL::StatementException& e){
         
-        std::cout << "statement:" << e.what() << std::endl;
+        std::cout << "statement:" << e.what() <<  std::endl;
         throw ;
     }
 }

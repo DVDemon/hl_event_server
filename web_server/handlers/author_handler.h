@@ -151,7 +151,10 @@ public:
                     
                 } 
                 
-                ostr << "{ \"result\": false , \"reason\": \"request broken\" }";
+                auto results = database::Author::read_all();
+                Poco::JSON::Array arr;
+                for(auto s: results) arr.add(s.toJSON());         
+                Poco::JSON::Stringifier::stringify(arr,ostr);
     }
 
 private:
