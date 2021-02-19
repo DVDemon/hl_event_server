@@ -15,6 +15,18 @@ Download from https://ignite.apache.org/download.cgi#binaries
 
 build platforms/cpp
 
+## install CPPRDKafkfa
+
+
+// https://github.com/edenhill/librdkafka
+https://github.com/mfontanini/cppkafka
+mkdir build
+cd build
+cmake <OPTIONS> ..
+make
+make install
+
+
 ## Install poco
 
 git clone -b master https://github.com/pocoproject/poco.git

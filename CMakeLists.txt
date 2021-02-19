@@ -9,6 +9,7 @@ find_package(GTest REQUIRED)
 find_package(Threads)
 find_package(ZLIB)
 find_package(Poco REQUIRED COMPONENTS Foundation Util Net XML JSON Crypto NetSSL)
+find_package(CppKafka REQUIRED)
 
 if(NOT ${Poco_FOUND})
     message(FATAL_ERROR "Poco C++ Libraries not found.")
@@ -37,6 +38,8 @@ target_link_libraries(${EXAMPLE_BINARY} PRIVATE
                              "libignite-binary.so"
                              "libignite-common.so"
                              "libignite-thin-client.so"
+                             "rdkafka++"
+                             CppKafka::cppkafka
                              ZLIB::ZLIB)
 
 set_target_properties(${EXAMPLE_BINARY} PROPERTIES LINKER_LANGUAGE CXX)

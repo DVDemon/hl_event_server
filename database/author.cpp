@@ -1,8 +1,11 @@
 #include "author.h"
 #include "database.h"
+#include "../config/config.h"
 #include <Poco/Data/MySQL/Connector.h>
 #include <Poco/Data/MySQL/MySQLException.h>
 #include <Poco/Data/SessionFactory.h>
+#include <cppkafka/cppkafka.h>
+#include <sstream>
 
 using namespace Poco::Data::Keywords;
 using Poco::Data::Session;
@@ -150,6 +153,20 @@ try{
         std::cout << "statement:" << e.what() << std::endl;
         throw ;
     }
+}
+
+
+void Author::send_to_queue(){
+    cppkafka::Configuration config = {
+        { "metadata.broker.list", Config::get().get_queue_host() }
+    };
+
+    cppkafka::Producer producer(config);
+    std::stringstream ss;
+    Poco::JSON::Stringifier::stringify(toJSON(),ss);
+    std::string message = ss.str();
+    producer.produce(cppkafka::MessageBuilder(Config::get().get_queue_topic()).partition(0).payload(message));
+    producer.flush();
 }
 
 void Author::insert(){

@@ -113,6 +113,18 @@ protected:
                 .required(false)
                 .repeatable(false)
                 .callback(OptionCallback<HTTPWebServer>(this, &HTTPWebServer::handleInitDB)));
+        options.addOption(
+            Option("queue", "q", "set queue host")
+                .required(false)
+                .repeatable(false)
+                .argument("value")
+                .callback(OptionCallback<HTTPWebServer>(this, &HTTPWebServer::handleQueueHost)));
+        options.addOption(
+            Option("topic", "t", "set queue topic")
+                .required(false)
+                .repeatable(false)
+                .argument("value")
+                .callback(OptionCallback<HTTPWebServer>(this, &HTTPWebServer::handleQueueTopic)));
     }
 
     void handleInitDB([[maybe_unused]] const std::string &name,
@@ -159,6 +171,20 @@ protected:
     {
         std::cout << "write_ip:" << value << std::endl;
         Config::get().write_request_ip() = value;
+    }
+
+    void handleQueueHost([[maybe_unused]] const std::string &name,
+                       [[maybe_unused]] const std::string &value)
+    {
+        std::cout << "queue host:" << value << std::endl;
+        Config::get().queue_host() = value;
+    }
+
+    void handleQueueTopic([[maybe_unused]] const std::string &name,
+                       [[maybe_unused]] const std::string &value)
+    {
+        std::cout << "queue topic:" << value << std::endl;
+        Config::get().queue_topic() = value;
     }
 
     void handleHelp([[maybe_unused]] const std::string &name,
