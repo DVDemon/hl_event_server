@@ -11,6 +11,13 @@ Config &Config::get()
     return _instance;
 }
 
+std::string& Config::queue_group_id(){
+    return _queue_group_id;
+}
+
+const std::string& Config::get_queue_group_id() const{
+    return _queue_group_id;
+}
 std::string& Config::queue_host(){
     return _queue_host;
 }
