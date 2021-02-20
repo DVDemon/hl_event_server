@@ -17,13 +17,15 @@ namespace database
 
         public:
 
+            static Author fromJSON(const std::string & str);
+
             long             get_id() const;
             const std::string &get_first_name() const;
             const std::string &get_last_name() const;
             const std::string &get_email() const;
             const std::string &get_title() const;
 
-            long         id();
+            long&         id();
             std::string &first_name();
             std::string &last_name();
             std::string &email();

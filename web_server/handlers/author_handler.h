@@ -135,7 +135,8 @@ public:
                     
                     if(check_result){
                         try{
-                            author.insert();
+                            //author.insert();
+                            author.send_to_queue();
                             ostr << "{ \"result\": true }";
                             return;
                     }catch(...){
