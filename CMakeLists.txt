@@ -27,11 +27,13 @@ link_directories("/usr/local/lib")
 add_executable(${EXAMPLE_BINARY} main.cpp 
                                  config/config.cpp 
                                  database/database.cpp
+                                 database/cache.cpp
                                  database/author.cpp)
 
 add_executable(${WRITER_BINARY} writer_main.cpp 
                                  config/config.cpp 
                                  database/database.cpp
+                                 database/cache.cpp
                                  database/author.cpp)
 
 target_include_directories(${EXAMPLE_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")

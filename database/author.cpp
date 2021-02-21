@@ -1,5 +1,7 @@
 #include "author.h"
 #include "database.h"
+#include "cache.h"
+
 #include "../config/config.h"
 #include <Poco/Data/MySQL/Connector.h>
 #include <Poco/Data/MySQL/MySQLException.h>
@@ -7,8 +9,7 @@
 #include <Poco/JSON/Parser.h>
 #include <Poco/Dynamic/Var.h>
 #include <cppkafka/cppkafka.h>
-#include <ignite/thin/ignite_client.h>
-#include <ignite/thin/ignite_client_configuration.h>
+
 #include <sstream>
 
 using namespace Poco::Data::Keywords;
@@ -121,14 +122,9 @@ namespace database
 
     Author Author::read_from_cache_by_id(long id){
 
-        ignite::thin::IgniteClientConfiguration cfg;        
-        cfg.SetEndPoints(Config::get().get_cache_servers());
         try
         {
-            ignite::thin::IgniteClient client = ignite::thin::IgniteClient::Start(cfg);
-            ignite::thin::cache::CacheClient<long, std::string> cacheClient = client.GetOrCreateCache<long, std::string>("authors");
-            
-            std::string result = cacheClient.Get(id);
+            std::string result = database::Cache::get().cache().Get(id);
             std::cout << "cached: [" << result << "]" << std::endl;
             return fromJSON(result);
             
@@ -140,6 +136,8 @@ namespace database
         }
 
     }
+
+
     std::vector<Author> Author::read_all_from_cache()
     {
         std::vector<Author> result;
@@ -256,20 +254,13 @@ namespace database
 
     void Author::save_to_cache()
     {
-        ignite::thin::IgniteClientConfiguration cfg;
-        
-        cfg.SetEndPoints(Config::get().get_cache_servers());
         try
         {
-            ignite::thin::IgniteClient client = ignite::thin::IgniteClient::Start(cfg);
-
-            ignite::thin::cache::CacheClient<long, std::string> cacheClient = client.GetOrCreateCache<long, std::string>("authors");
             std::stringstream ss;
             Poco::JSON::Stringifier::stringify(toJSON(), ss);
             std::string message = ss.str();
-            cacheClient.Put(_id, message);
-            std::string result = cacheClient.Get(_id);
-
+            database::Cache::get().cache().Put(_id, message);
+            std::string result = database::Cache::get().cache().Get(_id);
             std::cout << "cached: [" << result << "]" << std::endl;
         }
         catch (ignite::IgniteError err)
