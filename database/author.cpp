@@ -119,9 +119,49 @@ namespace database
         }
     }
 
-    std::vector<Author> read_all_from_cache()
+    Author Author::read_from_cache_by_id(long id){
+
+        ignite::thin::IgniteClientConfiguration cfg;        
+        cfg.SetEndPoints(Config::get().get_cache_servers());
+        try
+        {
+            ignite::thin::IgniteClient client = ignite::thin::IgniteClient::Start(cfg);
+            ignite::thin::cache::CacheClient<long, std::string> cacheClient = client.GetOrCreateCache<long, std::string>("authors");
+            
+            std::string result = cacheClient.Get(id);
+            std::cout << "cached: [" << result << "]" << std::endl;
+            return fromJSON(result);
+            
+        }
+        catch (ignite::IgniteError err)
+        {
+            std::cout << "error:" << err.what() << std::endl;
+            throw;
+        }
+
+    }
+    std::vector<Author> Author::read_all_from_cache()
     {
         std::vector<Author> result;
+
+        /*ignite::thin::IgniteClientConfiguration cfg;
+        
+        cfg.SetEndPoints(Config::get().get_cache_servers());
+        try
+        {
+            ignite::thin::IgniteClient client = ignite::thin::IgniteClient::Start(cfg);
+            ignite::thin::cache::CacheClient<long, std::string> cacheClient = client.GetOrCreateCache<long, std::string>("authors");
+            
+            cacheClient.Get_Al
+            cacheClient.Put(_id, message);
+            std::string result = cacheClient.Get(_id);
+
+            std::cout << "cached: [" << result << "]" << std::endl;
+        }
+        catch (ignite::IgniteError err)
+        {
+            std::cout << "error:" << err.what() << std::endl;
+        }*/
         return result;
     }
 
