@@ -125,7 +125,6 @@ namespace database
         try
         {
             std::string result = database::Cache::get().cache().Get(id);
-            std::cout << "cached: [" << result << "]" << std::endl;
             return fromJSON(result);
             
         }
@@ -137,6 +136,16 @@ namespace database
 
     }
 
+    void Author::warm_up_cache(){
+        std::cout << "wharming up authors cache ...";
+        auto array = read_all();
+        long count = 0;
+        for(auto &a : array) {
+            a.save_to_cache();
+            ++ count;
+        }
+        std::cout << "done: " << count << std::endl;
+    }
 
     std::vector<Author> Author::read_all_from_cache()
     {
@@ -261,7 +270,6 @@ namespace database
             std::string message = ss.str();
             database::Cache::get().cache().Put(_id, message);
             std::string result = database::Cache::get().cache().Get(_id);
-            std::cout << "cached: [" << result << "]" << std::endl;
         }
         catch (ignite::IgniteError err)
         {
