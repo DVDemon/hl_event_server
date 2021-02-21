@@ -23,139 +23,181 @@
 #include <iostream>
 #include <fstream>
 
-using Poco::Net::ServerSocket;
+using Poco::DateTimeFormat;
+using Poco::DateTimeFormatter;
+using Poco::ThreadPool;
+using Poco::Timestamp;
+using Poco::Net::HTMLForm;
 using Poco::Net::HTTPRequestHandler;
 using Poco::Net::HTTPRequestHandlerFactory;
 using Poco::Net::HTTPServer;
+using Poco::Net::HTTPServerParams;
 using Poco::Net::HTTPServerRequest;
 using Poco::Net::HTTPServerResponse;
-using Poco::Net::HTTPServerParams;
-using Poco::Timestamp;
-using Poco::DateTimeFormatter;
-using Poco::DateTimeFormat;
-using Poco::ThreadPool;
-using Poco::Util::ServerApplication;
-using Poco::Util::Application;
-using Poco::Util::Option;
-using Poco::Util::OptionSet;
-using Poco::Util::OptionCallback;
-using Poco::Util::HelpFormatter;
 using Poco::Net::NameValueCollection;
-using Poco::Net::HTMLForm;
+using Poco::Net::ServerSocket;
+using Poco::Util::Application;
+using Poco::Util::HelpFormatter;
+using Poco::Util::Option;
+using Poco::Util::OptionCallback;
+using Poco::Util::OptionSet;
+using Poco::Util::ServerApplication;
 
 #include "../../database/author.h"
 
-class AuthorHandler: public HTTPRequestHandler
+class AuthorHandler : public HTTPRequestHandler
 {
 private:
+    bool check_name(const std::string &name, std::string &reason)
+    {
+        if (name.length() < 3)
+        {
+            reason = "Name must be at leas 3 signs";
+            return false;
+        }
 
-            bool check_name(const std::string& name,std::string &reason){
-                if(name.length()<3) {
-                    reason ="Name must be at leas 3 signs";
-                    return false; 
-                } 
+        if (name.find(' ') != std::string::npos)
+        {
+            reason = "Name can't contain spaces";
+            return false;
+        }
 
-                if(name.find(' ')!=std::string::npos){
-                    reason ="Name can't contain spaces";
-                    return false; 
-                } 
-                
-                if(name.find('\t')!=std::string::npos){
-                    reason ="Name can't contain spaces";
-                    return false; 
-                }   
+        if (name.find('\t') != std::string::npos)
+        {
+            reason = "Name can't contain spaces";
+            return false;
+        }
 
-                return true; 
-            };
+        return true;
+    };
 
-            bool check_email(const std::string& email,std::string &reason){
-                if(email.find('@')==std::string::npos){
-                    reason ="Email must contain @";
-                    return false; 
-                }  
+    bool check_email(const std::string &email, std::string &reason)
+    {
+        if (email.find('@') == std::string::npos)
+        {
+            reason = "Email must contain @";
+            return false;
+        }
 
-                if(email.find(' ')!=std::string::npos){
-                    reason ="EMail can't contain spaces";
-                    return false; 
-                } 
-                
-                if(email.find('\t')!=std::string::npos){
-                    reason ="EMail can't contain spaces";
-                    return false; 
-                }   
+        if (email.find(' ') != std::string::npos)
+        {
+            reason = "EMail can't contain spaces";
+            return false;
+        }
 
-                return true; 
-            };
+        if (email.find('\t') != std::string::npos)
+        {
+            reason = "EMail can't contain spaces";
+            return false;
+        }
+
+        return true;
+    };
+
 public:
-    AuthorHandler(const std::string& format): _format(format)
+    AuthorHandler(const std::string &format) : _format(format)
     {
     }
 
-    void handleRequest(HTTPServerRequest& request,
-                       HTTPServerResponse& response)
+    void handleRequest(HTTPServerRequest &request,
+                       HTTPServerResponse &response)
     {
-        HTMLForm form(request,request.stream());
+        HTMLForm form(request, request.stream());
         response.setChunkedTransferEncoding(true);
         response.setContentType("application/json");
-        std::ostream& ostr = response.send();
+        std::ostream &ostr = response.send();
 
-        if(form.has("add"))
-        if(form.has("first_name"))
-        if(form.has("last_name"))
-        if(form.has("email"))
-        if(form.has("title"))
+        if (form.has("id"))
+        {
+            long id = atol(form.get("id").c_str());
+            try
+            {
+                if (form.has("cache"))
                 {
-                    database::Author author;
-                    author.first_name()= form.get("first_name");
-                    author.last_name()= form.get("last_name");
-                    author.email()= form.get("email");
-                    author.title()= form.get("title");
+                    database::Author result = database::Author::read_by_id(id);
+                    Poco::JSON::Stringifier::stringify(result.toJSON(), ostr);
+                }
+                else
+                {
+                    database::Author result = database::Author::read_from_cache_by_id(id);
+                    Poco::JSON::Stringifier::stringify(result.toJSON(), ostr);
+                }
+                return;
+            }
+            catch (...)
+            {
+                ostr << "{ \"result\": false , \"reason\": \"not gound\" }";
+                return;
+            }
+        }
+        else
+        {
 
-                    bool check_result = true;
-                    std::string message;
-                    std::string reason;
+            if (form.has("add"))
+                if (form.has("first_name"))
+                    if (form.has("last_name"))
+                        if (form.has("email"))
+                            if (form.has("title"))
+                            {
+                                database::Author author;
+                                author.first_name() = form.get("first_name");
+                                author.last_name() = form.get("last_name");
+                                author.email() = form.get("email");
+                                author.title() = form.get("title");
 
-                    if(!check_name(author.get_first_name(),reason)){
-                        check_result = false;
-                        message += reason;
-                        message += "<br>";
-                    }
+                                bool check_result = true;
+                                std::string message;
+                                std::string reason;
 
-                    if(!check_name(author.get_last_name(),reason)){
-                        check_result = false;
-                        message += reason;
-                        message += "<br>";
-                    }
+                                if (!check_name(author.get_first_name(), reason))
+                                {
+                                    check_result = false;
+                                    message += reason;
+                                    message += "<br>";
+                                }
 
-                    if(!check_email(author.get_email(),reason)){
-                        check_result = false;
-                        message += reason;
-                        message += "<br>";
-                    }
-                    
-                    if(check_result){
-                        try{
-                            //author.insert();
-                            author.send_to_queue();
-                            ostr << "{ \"result\": true }";
-                            return;
-                    }catch(...){
-                        ostr << "{ \"result\": false , \"reason\": \" database error\" }";
-                        return;
-                    }
+                                if (!check_name(author.get_last_name(), reason))
+                                {
+                                    check_result = false;
+                                    message += reason;
+                                    message += "<br>";
+                                }
 
-                    } else
-                    { 
-                        ostr << "{ \"result\": false , \"reason\": \"" << message << "\" }";
-                        return;
-                    }
-                    
-                } 
-                
-                auto results = database::Author::read_all();
-                Poco::JSON::Array arr;
-                for(auto s: results) arr.add(s.toJSON());         
-                Poco::JSON::Stringifier::stringify(arr,ostr);
+                                if (!check_email(author.get_email(), reason))
+                                {
+                                    check_result = false;
+                                    message += reason;
+                                    message += "<br>";
+                                }
+
+                                if (check_result)
+                                {
+                                    try
+                                    {
+                                        //author.insert();
+                                        author.send_to_queue();
+                                        ostr << "{ \"result\": true }";
+                                        return;
+                                    }
+                                    catch (...)
+                                    {
+                                        ostr << "{ \"result\": false , \"reason\": \" database error\" }";
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    ostr << "{ \"result\": false , \"reason\": \"" << message << "\" }";
+                                    return;
+                                }
+                            }
+        }
+
+        auto results = database::Author::read_all();
+        Poco::JSON::Array arr;
+        for (auto s : results)
+            arr.add(s.toJSON());
+        Poco::JSON::Stringifier::stringify(arr, ostr);
     }
 
 private:
