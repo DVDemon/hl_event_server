@@ -25,7 +25,7 @@ namespace database
             const std::string &get_email() const;
             const std::string &get_title() const;
 
-            long&         id();
+            long&        id();
             std::string &first_name();
             std::string &last_name();
             std::string &email();
@@ -34,9 +34,11 @@ namespace database
             static void init();
             static Author read_by_id(long id);
             static std::vector<Author> read_all();
+            static std::vector<Author> read_all_from_cache();
             static std::vector<Author> search(std::string first_name,std::string last_name);
-            void insert();
+            void save_to_mysql();
             void send_to_queue();
+            void save_to_cache();
 
             Poco::JSON::Object::Ptr toJSON() const;
 

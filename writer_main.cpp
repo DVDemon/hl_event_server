@@ -15,7 +15,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
     try
     {
         po::options_description desc{"Options"};
-        desc.add_options()("help,h", "This screen")("read,", po::value<std::string>()->required(), "set ip address for read requests")("write,", po::value<std::string>()->required(), "set ip address for write requests")("port,", po::value<std::string>()->required(), "databaase port")("login,", po::value<std::string>()->required(), "database login")("password,", po::value<std::string>()->required(), "database password")("database,", po::value<std::string>()->required(), "database name")("queue,", po::value<std::string>()->required(), "queue url")("topic,", po::value<std::string>()->required(), "topic name")("group_id,", po::value<std::string>()->required(), "consumer group_id name");
+        desc.add_options()("help,h", "This screen")("read,", po::value<std::string>()->required(), "set ip address for read requests")("write,", po::value<std::string>()->required(), "set ip address for write requests")("port,", po::value<std::string>()->required(), "databaase port")("login,", po::value<std::string>()->required(), "database login")("password,", po::value<std::string>()->required(), "database password")("database,", po::value<std::string>()->required(), "database name")("queue,", po::value<std::string>()->required(), "queue url")("topic,", po::value<std::string>()->required(), "topic name")("group_id,", po::value<std::string>()->required(), "consumer group_id name")("cache_servers,", po::value<std::string>()->required(), "iginite cache servers");
 
         po::variables_map vm;
         po::store(parse_command_line(argc, argv, desc), vm);
@@ -41,6 +41,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
             Config::get().queue_topic() = vm["topic"].as<std::string>();
         if (vm.count("group_id"))
             Config::get().queue_group_id() = vm["group_id"].as<std::string>();
+        if (vm.count("cache_servers"))
+            Config::get().cache_servers() = vm["cache_servers"].as<std::string>();
 
         // Stop processing on SIGINT
         signal(SIGINT, [](int) { running = false; });
@@ -97,7 +99,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
                     std::string payload = msg.get_payload();
                     std::cout << msg.get_payload() << std::endl;
                     database::Author a = database::Author::fromJSON(payload);
-                    a.insert();
+                    a.save_to_mysql();
+                    a.save_to_cache();
 
                     // Now commit the message
                     consumer.commit(msg);

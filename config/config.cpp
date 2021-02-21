@@ -2,7 +2,6 @@
 
 Config::Config()
 {
-
 }
 
 Config &Config::get()
@@ -11,26 +10,42 @@ Config &Config::get()
     return _instance;
 }
 
-std::string& Config::queue_group_id(){
+const std::string &Config::get_cache_servers() const
+{
+    return _cache_servers;
+}
+
+std::string &Config::cache_servers()
+{
+    return _cache_servers;
+}
+
+std::string &Config::queue_group_id()
+{
     return _queue_group_id;
 }
 
-const std::string& Config::get_queue_group_id() const{
+const std::string &Config::get_queue_group_id() const
+{
     return _queue_group_id;
 }
-std::string& Config::queue_host(){
+std::string &Config::queue_host()
+{
     return _queue_host;
 }
 
-std::string& Config::queue_topic(){
+std::string &Config::queue_topic()
+{
     return _queue_topic;
 }
 
-const std::string& Config::get_queue_host() const{
+const std::string &Config::get_queue_host() const
+{
     return _queue_host;
 }
 
-const std::string& Config::get_queue_topic() const{
+const std::string &Config::get_queue_topic() const
+{
     return _queue_topic;
 }
 

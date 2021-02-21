@@ -7,6 +7,8 @@
 #include <Poco/JSON/Parser.h>
 #include <Poco/Dynamic/Var.h>
 #include <cppkafka/cppkafka.h>
+#include <ignite/thin/ignite_client.h>
+#include <ignite/thin/ignite_client_configuration.h>
 #include <sstream>
 
 using namespace Poco::Data::Keywords;
@@ -64,7 +66,8 @@ namespace database
         return root;
     }
 
-    Author Author::fromJSON(const std::string & str){
+    Author Author::fromJSON(const std::string &str)
+    {
         Author author;
         Poco::JSON::Parser parser;
         Poco::Dynamic::Var result = parser.parse(str);
@@ -114,6 +117,12 @@ namespace database
             std::cout << "statement:" << e.what() << std::endl;
             throw;
         }
+    }
+
+    std::vector<Author> read_all_from_cache()
+    {
+        std::vector<Author> result;
+        return result;
     }
 
     std::vector<Author> Author::read_all()
@@ -205,13 +214,36 @@ namespace database
         producer.flush();
     }
 
-    void Author::insert()
+    void Author::save_to_cache()
+    {
+        ignite::thin::IgniteClientConfiguration cfg;
+        
+        cfg.SetEndPoints(Config::get().get_cache_servers());
+        try
+        {
+            ignite::thin::IgniteClient client = ignite::thin::IgniteClient::Start(cfg);
+
+            ignite::thin::cache::CacheClient<long, std::string> cacheClient = client.GetOrCreateCache<long, std::string>("authors");
+            std::stringstream ss;
+            Poco::JSON::Stringifier::stringify(toJSON(), ss);
+            std::string message = ss.str();
+            cacheClient.Put(_id, message);
+            std::string result = cacheClient.Get(_id);
+
+            std::cout << "cached: [" << result << "]" << std::endl;
+        }
+        catch (ignite::IgniteError err)
+        {
+            std::cout << "error:" << err.what() << std::endl;
+        }
+    }
+    void Author::save_to_mysql()
     {
 
         try
         {
             Poco::Data::Session session = database::Database::get().create_session_write();
-            Statement insert(session);
+            Poco::Data::Statement insert(session);
 
             insert << "INSERT INTO Author (first_name,last_name,email,title) VALUES(?, ?, ?, ?)",
                 use(_first_name),
@@ -221,6 +253,17 @@ namespace database
                 now;
 
             insert.execute();
+
+            Poco::Data::Statement select(session);
+            select << "SELECT LAST_INSERT_ID()",
+                into(_id),
+                range(0, 1); //  iterate over result set one row at a time
+
+            if (!select.done())
+            {
+                select.execute();
+            }
+            std::cout << "inserted:" << _id << std::endl;
         }
         catch (Poco::Data::MySQL::ConnectionException &e)
         {
@@ -260,7 +303,7 @@ namespace database
         return _title;
     }
 
-    long& Author::id()
+    long &Author::id()
     {
         return _id;
     }
