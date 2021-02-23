@@ -1,8 +1,7 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-#include <ignite/thin/ignite_client.h>
-#include <ignite/thin/ignite_client_configuration.h>
+#include <string>
 
 namespace database
 {
@@ -10,12 +9,11 @@ namespace database
     {
         private:
             Cache();
-            ignite::thin::IgniteClient _client;
-            ignite::thin::cache::CacheClient<long, std::string> _cache;
+
         public:
             static Cache get();
-            ignite::thin::cache::CacheClient<long, std::string>& cache(); 
-
+            void put(long id, const std::string& val);
+            bool get(long id, std::string& val);
     };
 }
 

@@ -1,6 +1,14 @@
 #include "cache.h"
 #include "../config/config.h"
 
+
+#include <ignite/thin/ignite_client.h>
+#include <ignite/thin/ignite_client_configuration.h>
+#include <exception>
+
+static ignite::thin::IgniteClient _client;
+static ignite::thin::cache::CacheClient<long, std::string> _cache;
+
 namespace database
 {
     Cache::Cache()
@@ -25,7 +33,16 @@ namespace database
         return instance;
     }
 
-    ignite::thin::cache::CacheClient<long, std::string>& Cache::cache(){
-        return _cache;
+    void Cache::put(long id, const std::string& val){
+        _cache.Put(id,val);
+    } 
+
+    bool Cache::get(long id, std::string& val){
+        try{
+            val = _cache.Get(id);
+            return true;
+        }catch(...){
+            throw std::logic_error("key not found in cache");
+        }
     }
 }

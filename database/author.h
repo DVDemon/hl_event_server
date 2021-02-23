@@ -36,7 +36,6 @@ namespace database
             static Author read_by_id(long id);
             static Author read_from_cache_by_id(long id);
             static std::vector<Author> read_all();
-            static std::vector<Author> read_all_from_cache();
             static std::vector<Author> search(std::string first_name,std::string last_name);
             void save_to_mysql();
             void send_to_queue();

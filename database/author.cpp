@@ -11,6 +11,7 @@
 #include <cppkafka/cppkafka.h>
 
 #include <sstream>
+#include <exception>
 
 using namespace Poco::Data::Keywords;
 using Poco::Data::Session;
@@ -120,56 +121,35 @@ namespace database
         }
     }
 
-    Author Author::read_from_cache_by_id(long id){
+    Author Author::read_from_cache_by_id(long id)
+    {
 
         try
         {
-            std::string result = database::Cache::get().cache().Get(id);
-            return fromJSON(result);
-            
+            std::string result;
+            if (database::Cache::get().get(id, result))
+                return fromJSON(result);
+            else
+                throw std::logic_error("key not found in the cache");
         }
-        catch (ignite::IgniteError err)
+        catch (std::exception err)
         {
             std::cout << "error:" << err.what() << std::endl;
             throw;
         }
-
     }
 
-    void Author::warm_up_cache(){
+    void Author::warm_up_cache()
+    {
         std::cout << "wharming up authors cache ...";
         auto array = read_all();
         long count = 0;
-        for(auto &a : array) {
+        for (auto &a : array)
+        {
             a.save_to_cache();
-            ++ count;
+            ++count;
         }
         std::cout << "done: " << count << std::endl;
-    }
-
-    std::vector<Author> Author::read_all_from_cache()
-    {
-        std::vector<Author> result;
-
-        /*ignite::thin::IgniteClientConfiguration cfg;
-        
-        cfg.SetEndPoints(Config::get().get_cache_servers());
-        try
-        {
-            ignite::thin::IgniteClient client = ignite::thin::IgniteClient::Start(cfg);
-            ignite::thin::cache::CacheClient<long, std::string> cacheClient = client.GetOrCreateCache<long, std::string>("authors");
-            
-            cacheClient.Get_Al
-            cacheClient.Put(_id, message);
-            std::string result = cacheClient.Get(_id);
-
-            std::cout << "cached: [" << result << "]" << std::endl;
-        }
-        catch (ignite::IgniteError err)
-        {
-            std::cout << "error:" << err.what() << std::endl;
-        }*/
-        return result;
     }
 
     std::vector<Author> Author::read_all()
@@ -263,18 +243,10 @@ namespace database
 
     void Author::save_to_cache()
     {
-        try
-        {
-            std::stringstream ss;
-            Poco::JSON::Stringifier::stringify(toJSON(), ss);
-            std::string message = ss.str();
-            database::Cache::get().cache().Put(_id, message);
-            std::string result = database::Cache::get().cache().Get(_id);
-        }
-        catch (ignite::IgniteError err)
-        {
-            std::cout << "error:" << err.what() << std::endl;
-        }
+        std::stringstream ss;
+        Poco::JSON::Stringifier::stringify(toJSON(), ss);
+        std::string message = ss.str();
+        database::Cache::get().put(_id, message);
     }
     void Author::save_to_mysql()
     {
